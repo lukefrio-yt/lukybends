@@ -13,7 +13,6 @@ function playTone(freq, duration, type = 'sine') {
   } catch(e) {}
 }
 
-// Rozšířená slovní zásoba – odstraněny extrémně těžké výrazy, body 2 a 3 jsou vzácné
 const defaultWords = {
   jidlo: [
     { text: "Pizza", pts: 1 }, { text: "Hamburger", pts: 1 }, { text: "Sushi", pts: 2 }, 
@@ -314,7 +313,7 @@ function startGame() {
   
   if (timeSetting === 0) {
     timerDisplay.textContent = "∞";
-    quitGameBtn.classList.remove('hidden'); // Zobrazit křížek pro ukončení při neomezené hře
+    quitGameBtn.classList.remove('hidden');
   } else {
     timerDisplay.textContent = timeLeft;
     quitGameBtn.classList.add('hidden');
@@ -387,11 +386,19 @@ window.addEventListener('keydown', (e) => {
   if (e.key === "ArrowUp") handleAction('pass');
 });
 
+// Optimalizováno pro telefon na šířku (nezáleží, jakou stranou 180 stupňů je otočený)
 window.addEventListener('deviceorientation', (event) => {
   if (currentMode !== 'mobile' || !isGameActive || !canAction) return;
-  const tilt = event.gamma; 
-  if (tilt > 65) handleAction('ok');
-  else if (tilt < -65) handleAction('pass');
+  
+  const beta = event.beta; // Předozadní náklon
+  const gamma = event.gamma; // Boční náklon
+  
+  // Detekce podle primárního náklonu (beta) s pevným limitem, aby se to nespouštělo samo
+  if (beta > 70) {
+    handleAction('ok');
+  } else if (beta < 20) {
+    handleAction('pass');
+  }
 });
 
 function endGame() {
