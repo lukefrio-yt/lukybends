@@ -106,8 +106,6 @@ let currentMode = 'mobile';
 let currentCategory = 'jidlo';
 let currentWordObj = null;
 
-// Proměnné pro chytrou kalibraci polohy na čele
-let baseTilt = null;
 let tempCustomWords = [];
 
 const wordDisplay = document.getElementById('word-display');
@@ -115,6 +113,7 @@ const multiplierDisplay = document.getElementById('word-multiplier');
 const timerDisplay = document.getElementById('game-timer');
 const categoriesContainer = document.getElementById('categories-container');
 const quitGameBtn = document.getElementById('quit-game-btn');
+const gameScreen = document.getElementById('screen-game');
 
 const categoryDisplayNames = {
   jidlo: "Jídlo",
@@ -274,13 +273,7 @@ document.getElementById('save-custom-cat').addEventListener('click', () => {
   modalCustom.classList.remove('active');
 });
 
-document.getElementById('start-btn').addEventListener('click', async () => {
-  if (currentMode === 'mobile' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try {
-      const permission = await DeviceOrientationEvent.requestPermission();
-      if (permission !== 'granted') return;
-    } catch(e) {}
-  }
+document.getElementById('start-btn').addEventListener('click', () => {
   startCountdown();
 });
 
@@ -306,10 +299,9 @@ function startCountdown() {
 
 function startGame() {
   document.getElementById('screen-countdown').classList.remove('active');
-  document.getElementById('screen-game').classList.add('active');
+  gameScreen.classList.add('active');
   score = 0;
   usedWords = [];
-  baseTilt = null; // Reset kalibrace pro novou hru
   
   const timeSetting = parseInt(document.getElementById('game-time').value);
   timeLeft = timeSetting;
@@ -327,7 +319,7 @@ function startGame() {
     }, 1000);
   }
 
-  document.getElementById('hint-mobile').classList.toggle('hidden', currentMode !== 'mobile');
+  document.getElementById('hint-mobile').classList.add('hidden'); // Skryjeme staré textové nápovědy o naklánění
   document.getElementById('hint-pc').classList.toggle('hidden', currentMode !== 'pc');
 
   reloadWordsPool();
@@ -383,35 +375,35 @@ function handleAction(type) {
   }, 700);
 }
 
-window.addEventListener('keydown', (e) => {
-  if (currentMode !== 'pc' || !isGameActive) return;
-  if (e.key === "ArrowDown") handleAction('ok');
-  if (e.key === "ArrowUp") handleAction('pass');
+// Dotykové ovládání celé obrazovky hry:
+// Levá strana displeje = Správně (ok)
+// Pravá strana displeje = Špatně (pass)
+gameScreen.addEventListener('click', (e) => {
+  if (!isGameActive || !canAction) return;
+  
+  // Ignorujeme kliknutí na tlačítko "Ukončit hru", pokud je zobrazené
+  if (e.target.closest('#quit-game-btn')) return;
+  
+  const screenWidth = window.innerWidth;
+  const clickX = e.clientX;
+  
+  if (clickX < screenWidth / 2) {
+    // Levá polovina = Správně
+    handleAction('ok');
+  } else {
+    // Pravá polovina = Špatně
+    handleAction('pass');
+  }
 });
 
-// Univerzální dynamická kalibrace pohybu pro jakýkoliv telefon
-window.addEventListener('deviceorientation', (event) => {
-  if (currentMode !== 'mobile' || !isGameActive || !canAction) return;
-  
-  // Vybereme osu podle toho, co telefon zrovna hlásí (beta nebo gamma)
-  const currentVal = (event.beta !== null && Math.abs(event.beta) > 0) ? event.beta : event.gamma;
-  if (currentVal === null || isNaN(currentVal)) return;
-
-  // První hodnota vteřinu po startu hry se uloží jako základní poloha na tvém čele
-  if (baseTilt === null) {
-    baseTilt = currentVal;
-    return;
-  }
-  
-  const diff = currentVal - baseTilt;
-  
-  // Sklonění dolů k zemi (změna o více než 25 stupňů jedním směrem) = Uhodnuto
-  if (diff > 25) {
-    handleAction('ok');
-  } 
-  // Zaklonění nahoru k mrakům (změna o více než 25 stupňů opačným směrem) = Špatně
-  else if (diff < -25) {
-    handleAction('pass');
+// Podpora i pro klávesnici (kdyby náhodou na PC)
+window.addEventListener('keydown', (e) => {
+  if (!isGameActive) return;
+  if (e.key === "ArrowLeft") handleAction('ok');
+  if (e.key === "ArrowRight") handleAction('pass');
+  if (currentMode === 'pc') {
+    if (e.key === "ArrowDown") handleAction('ok');
+    if (e.key === "ArrowUp") handleAction('pass');
   }
 });
 
@@ -419,7 +411,7 @@ function endGame() {
   isGameActive = false;
   clearInterval(timer);
   quitGameBtn.classList.add('hidden');
-  document.getElementById('screen-game').classList.remove('active');
+  gameScreen.classList.remove('active');
   document.getElementById('screen-results').classList.add('active');
   
   document.getElementById('final-score').textContent = score;
