@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LukyBends</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <button id="rules-open-btn" class="rules-corner-btn"><i class="fa-solid fa-circle-question"></i></button>
+
+  <div id="screen-start" class="screen active">
+    <div class="logo-area">
+      <div class="icon-bounce"><i class="fa-solid fa-head-side-virus"></i></div>
+      <h1>LukyBends</h1>
+    </div>
+
+    <div class="settings-grid">
+      <div class="setting-item">
+        <label><i class="fa-solid fa-stopwatch"></i> Časovač</label>
+        <select id="game-time">
+          <option value="30">30 s</option>
+          <option value="60" selected>60 s</option>
+          <option value="90">90 s</option>
+          <option value="120">120 s</option>
+          <option value="150">150 s</option>
+          <option value="0">Vypnuto</option>
+        </select>
+      </div>
+
+      <div class="setting-item">
+        <label><i class="fa-solid fa-display"></i> Zařízení</label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-mode="mobile"><i class="fa-solid fa-mobile-screen"></i> Mobil</button>
+          <button class="toggle-btn" data-mode="pc"><i class="fa-solid fa-laptop"></i> PC</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-grid">
+      <div class="cat-header-row">
+        <h3>Vyber kategorii:</h3>
+        <button id="open-custom-modal" class="btn-custom-add"><i class="fa-solid fa-plus"></i> Vlastní kategorie</button>
+      </div>
+      <div class="cat-list" id="categories-container">
+        </div>
+    </div>
+
+    <button id="start-btn" class="btn-main">START</button>
+  </div>
+
+  <div id="modal-custom" class="modal">
+    <div class="modal-content custom-box">
+      <h2>Vytvořit vlastní kategorii</h2>
+      <div class="custom-form">
+        <input type="text" id="custom-cat-name" placeholder="Název kategorie (např. Moje hra)">
+        
+        <div class="word-input-row">
+          <input type="text" id="custom-word-text" placeholder="Zadej slovo...">
+          <select id="custom-word-pts">
+            <option value="1">1 bod</option>
+            <option value="2">2 body</option>
+            <option value="3">3 body</option>
+          </select>
+          <button id="add-word-btn" class="btn-sub"><i class="fa-solid fa-plus"></i></button>
+        </div>
+
+        <div id="custom-words-preview" class="preview-list">
+          <p class="empty-preview">Zatím žádná slova...</p>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="save-custom-cat" class="btn-main">ULOŽIT</button>
+        <button id="close-custom-modal" class="btn-sec">ZPĚT</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-rules" class="modal">
+    <div class="modal-content">
+      <h2>Pravidla LukyBends</h2>
+      <div class="rules-text">
+        <p><strong>Cíl hry:</strong> Uhodnout co nejvíce slov zobrazených na obrazovce během časového limitu.</p>
+        <p><strong>Jak hrát (Mobil):</strong> Přilož mobil k čelu obrazovkou k ostatním. Ostatní ti napovídají. Pokud uhodneš, <strong>skloň hlavu dolů</strong> (mobil k zemi). Pokud nevíš, <strong>zakloň hlavu dozadu</strong> (mobil k nebi).</p>
+        <p><strong>Jak hrát (PC):</strong> Pokud hraješ na PC, místo naklánění používej <strong>šipku dolů (Uhodnuto)</strong> a <strong>šipku nahoru (Pass)</strong>.</p>
+        <p><strong>Vlastní kategorie:</strong> Můžeš si vytvořit vlastní balíček slov, nastavit jim body a uloží se ti do paměti zařízení.</p>
+      </div>
+      <button id="rules-close-btn" class="btn-main">ROZUMÍM</button>
+    </div>
+  </div>
+
+  <div id="screen-countdown" class="screen">
+    <div id="countdown-number">5</div>
+    <p class="countdown-sub">Dej si telefon k čelu!</p>
+  </div>
+
+  <div id="screen-game" class="screen">
+    <button id="quit-game-btn" class="quit-corner-btn hidden" title="Ukončit hru"><i class="fa-solid fa-xmark"></i></button>
+    <div class="game-header">
+      <div id="game-timer">60</div>
+    </div>
+    <div class="word-container">
+      <div id="word-multiplier"></div>
+      <div id="word-display">...</div>
+    </div>
+    <div class="game-hints" id="hint-mobile">
+      <span><i class="fa-solid fa-arrow-down"></i> Uhodnuto</span>
+      <span><i class="fa-solid fa-arrow-up"></i> Přeskočit</span>
+    </div>
+    <div class="game-hints hidden" id="hint-pc">
+      <span><i class="fa-solid fa-arrow-down"></i> Šipka DOLŮ - SPRÁVNĚ</span>
+      <span><i class="fa-solid fa-arrow-up"></i> Šipka NAHORU - ŠPATNĚ</span>
+    </div>
+    <div id="feedback-overlay"></div>
+  </div>
+
+  <div id="screen-results" class="screen">
+    <h2>Konec hry!</h2>
+    <div class="final-score-area">
+      <p>Celkové skóre:</p>
+      <div id="final-score">0</div>
+    </div>
+    <div id="results-list" class="results-container"></div>
+    <button id="restart-btn" class="btn-main">ZPĚT DO MENU</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
