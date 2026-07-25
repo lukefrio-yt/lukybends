@@ -106,6 +106,8 @@ let currentMode = 'mobile';
 let currentCategory = 'jidlo';
 let currentWordObj = null;
 
+// Proměnné pro chytrou kalibraci polohy na čele
+let baseTilt = null;
 let tempCustomWords = [];
 
 const wordDisplay = document.getElementById('word-display');
@@ -307,6 +309,7 @@ function startGame() {
   document.getElementById('screen-game').classList.add('active');
   score = 0;
   usedWords = [];
+  baseTilt = null; // Reset kalibrace pro novou hru
   
   const timeSetting = parseInt(document.getElementById('game-time').value);
   timeLeft = timeSetting;
@@ -386,20 +389,28 @@ window.addEventListener('keydown', (e) => {
   if (e.key === "ArrowUp") handleAction('pass');
 });
 
-// Absolutní pevná detekce pro telefon na čelu (na šířku):
+// Univerzální dynamická kalibrace pohybu pro jakýkoliv telefon
 window.addEventListener('deviceorientation', (event) => {
   if (currentMode !== 'mobile' || !isGameActive || !canAction) return;
   
-  const beta = event.beta; 
-  if (beta === null || isNaN(beta)) return;
+  // Vybereme osu podle toho, co telefon zrovna hlásí (beta nebo gamma)
+  const currentVal = (event.beta !== null && Math.abs(event.beta) > 0) ? event.beta : event.gamma;
+  if (currentVal === null || isNaN(currentVal)) return;
 
-  // Na čelu je telefon ve svislé poloze (beta se pohybuje kolem 0°).
-  // 1. Gesto SPRÁVNĚ: sklonění dolů k zemi (beta vyskočí nad +40°)
-  // 2. Gesto ŠPATNĚ (Pass): zaklonění dozadu k mrakům (beta klesne pod -40°)
+  // První hodnota vteřinu po startu hry se uloží jako základní poloha na tvém čele
+  if (baseTilt === null) {
+    baseTilt = currentVal;
+    return;
+  }
   
-  if (beta > 40) {
+  const diff = currentVal - baseTilt;
+  
+  // Sklonění dolů k zemi (změna o více než 25 stupňů jedním směrem) = Uhodnuto
+  if (diff > 25) {
     handleAction('ok');
-  } else if (beta < -40) {
+  } 
+  // Zaklonění nahoru k mrakům (změna o více než 25 stupňů opačným směrem) = Špatně
+  else if (diff < -25) {
     handleAction('pass');
   }
 });
