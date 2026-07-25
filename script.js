@@ -79,11 +79,12 @@ const defaultWords = {
     { text: "Kytara", pts: 1 }, { text: "Klavír", pts: 1 }, { text: "Bubny", pts: 1 }, 
     { text: "DJ", pts: 1 }, { text: "housle", pts: 1 }, { text: "Opera", pts: 1 }
   ],
-  vecivdomcnosti: [
-    { text: "Lednička", pts: 1 }, { text: "Mikrovlnka", pts: 1 }, { text: "Vysavač", pts: 1 }, 
-    { text: "Pračka", pts: 1 }, { text: "Toaletní papír", pts: 1 }, { text: "Žehlička", pts: 1 }, 
-    { text: "Pánev", pts: 1 }, { text: "Televize", pts: 1 }, { text: "Kartáček na zuby", pts: 1 }, 
-    { text: "Vývrtka", pts: 2 }
+  zahrajto: [
+    { text: "Plavání", pts: 1 }, { text: "Stavění domu", pts: 1 }, { text: "Vaření", pts: 1 }, 
+    { text: "Hraní fotbalu", pts: 1 }, { text: "Řízení auta", pts: 1 }, { text: "Malování obrazu", pts: 1 }, 
+    { text: "Hraní na kytaru", pts: 1 }, { text: "Psaní na stroji", pts: 1 }, { text: "Úklid koštětem", pts: 1 }, 
+    { text: "Čištění zubů", pts: 1 }, { text: "Cvičení jógy", pts: 2 }, { text: "Boxování", pts: 1 },
+    { text: "Skákání přes švihadlo", pts: 1 }, { text: "Žehlení prádla", pts: 1 }, { text: "Fénování vlasů", pts: 1 }
   ],
   superhrdinove: [
     { text: "Batman", pts: 1 }, { text: "Superman", pts: 1 }, { text: "Spider-Man", pts: 1 }, 
@@ -126,7 +127,7 @@ const categoryDisplayNames = {
   mesta: "Města",
   auta: "Auta",
   hudba: "Hudba",
-  vecivdomcnosti: "Věci v domácnosti",
+  zahrajto: "Zahraj to",
   superhrdinove: "Superhrdinové"
 };
 
@@ -153,7 +154,7 @@ function renderCategoriesUI() {
   const icons = {
     jidlo: 'pizza-slice', zvirata: 'paw', celebrity: 'star', filmy: 'film',
     sportovci: 'person-running', povolani: 'briefcase', pohadky: 'book-open',
-    mesta: 'city', auta: 'car', hudba: 'music', vecivdomcnosti: 'house',
+    mesta: 'city', auta: 'car', hudba: 'music', zahrajto: 'masks-theater',
     superhrdinove: 'shield-halved'
   };
 
@@ -280,6 +281,21 @@ document.getElementById('start-btn').addEventListener('click', () => {
 function startCountdown() {
   document.getElementById('screen-start').classList.remove('active');
   document.getElementById('screen-countdown').classList.add('active');
+  
+  // Automatické přepnutí do režimu celé obrazovky a na šířku (landscape)
+  try {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen().catch(() => {});
+    } else if (elem.webkitRequestFullscreen) {
+      elem.webkitRequestFullscreen();
+    }
+    
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+  } catch(e) {}
+
   let count = 5;
   const countEl = document.getElementById('countdown-number');
   countEl.textContent = count;
@@ -319,7 +335,12 @@ function startGame() {
     }, 1000);
   }
 
-  document.getElementById('hint-mobile').classList.add('hidden'); // Skryjeme staré textové nápovědy o naklánění
+  const hintMobile = document.getElementById('hint-mobile');
+  if (hintMobile) {
+    hintMobile.classList.remove('hidden');
+    hintMobile.innerHTML = '<span style="color: #34d399;">👈 Levá strana = SPRÁVNĚ</span> | <span style="color: #f87171;">Pravá strana = ŠPATNĚ 👉</span>';
+  }
+  
   document.getElementById('hint-pc').classList.toggle('hidden', currentMode !== 'pc');
 
   reloadWordsPool();
@@ -375,28 +396,22 @@ function handleAction(type) {
   }, 700);
 }
 
-// Dotykové ovládání celé obrazovky hry:
-// Levá strana displeje = Správně (ok)
-// Pravá strana displeje = Špatně (pass)
+// Dotykové ovládání: Levá strana = Správně, Pravá strana = Špatně
 gameScreen.addEventListener('click', (e) => {
   if (!isGameActive || !canAction) return;
   
-  // Ignorujeme kliknutí na tlačítko "Ukončit hru", pokud je zobrazené
   if (e.target.closest('#quit-game-btn')) return;
   
   const screenWidth = window.innerWidth;
   const clickX = e.clientX;
   
   if (clickX < screenWidth / 2) {
-    // Levá polovina = Správně
-    handleAction('ok');
+    handleAction('ok'); // Levá strana -> Správně
   } else {
-    // Pravá polovina = Špatně
-    handleAction('pass');
+    handleAction('pass'); // Pravá strana -> Špatně
   }
 });
 
-// Podpora i pro klávesnici (kdyby náhodou na PC)
 window.addEventListener('keydown', (e) => {
   if (!isGameActive) return;
   if (e.key === "ArrowLeft") handleAction('ok');
