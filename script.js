@@ -106,6 +106,9 @@ let currentMode = 'mobile';
 let currentCategory = 'jidlo';
 let currentWordObj = null;
 
+// Proměnná pro uložení úhlu čela na začátku hry
+let calibratedBeta = null;
+
 let tempCustomWords = [];
 
 const wordDisplay = document.getElementById('word-display');
@@ -307,6 +310,7 @@ function startGame() {
   document.getElementById('screen-game').classList.add('active');
   score = 0;
   usedWords = [];
+  calibratedBeta = null; // Reset kalibrace na začátek nové hry
   
   const timeSetting = parseInt(document.getElementById('game-time').value);
   timeLeft = timeSetting;
@@ -386,17 +390,28 @@ window.addEventListener('keydown', (e) => {
   if (e.key === "ArrowUp") handleAction('pass');
 });
 
-// Optimalizováno pro telefon na šířku (nezáleží, jakou stranou 180 stupňů je otočený)
+// Inteligentní kalibrace úhlu čela (při prvním zachycení senzoru)
 window.addEventListener('deviceorientation', (event) => {
   if (currentMode !== 'mobile' || !isGameActive || !canAction) return;
   
-  const beta = event.beta; // Předozadní náklon
-  const gamma = event.gamma; // Boční náklon
+  const beta = event.beta; 
+  if (beta === null || isNaN(beta)) return;
+
+  // První hodnota po spuštění hry se uloží jako základní pozice na čele
+  if (calibratedBeta === null) {
+    calibratedBeta = beta;
+    return;
+  }
   
-  // Detekce podle primárního náklonu (beta) s pevným limitem, aby se to nespouštělo samo
-  if (beta > 70) {
+  // Rozdíl oproti poloze na čele
+  const diff = beta - calibratedBeta;
+  
+  // Sklonění hlavy dolů (přibližně o 35° a víc oproti čelu) = Uhodnuto
+  if (diff > 35) {
     handleAction('ok');
-  } else if (beta < 20) {
+  } 
+  // Zaklonění hlavy dozadu (přibližně o 35° a víc na druhou stranu) = Pass
+  else if (diff < -35) {
     handleAction('pass');
   }
 });
