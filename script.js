@@ -106,7 +106,6 @@ let currentMode = 'mobile';
 let currentCategory = 'jidlo';
 let currentWordObj = null;
 
-let calibratedBeta = null;
 let tempCustomWords = [];
 
 const wordDisplay = document.getElementById('word-display');
@@ -308,7 +307,6 @@ function startGame() {
   document.getElementById('screen-game').classList.add('active');
   score = 0;
   usedWords = [];
-  calibratedBeta = null; 
   
   const timeSetting = parseInt(document.getElementById('game-time').value);
   timeLeft = timeSetting;
@@ -388,26 +386,20 @@ window.addEventListener('keydown', (e) => {
   if (e.key === "ArrowUp") handleAction('pass');
 });
 
-// Vyvážená citlivost: dolů stačí menší pohyb (20°), nahoru (pass) vyžaduje větší záklon (-30°)
+// Pevně nastavené úhly pro držení na čele (sleduje se absolutní osa beta, odpadá matoucí kalibrace)
 window.addEventListener('deviceorientation', (event) => {
   if (currentMode !== 'mobile' || !isGameActive || !canAction) return;
   
-  const beta = event.beta; 
+  const beta = event.beta; // Předozadní náklon telefonu
   if (beta === null || isNaN(beta)) return;
 
-  if (calibratedBeta === null) {
-    calibratedBeta = beta;
-    return;
-  }
+  // Když je telefon na čele, hodnota beta je cca kolem 0° až 15° (neutrální stav).
+  // Sklonění dolů (k zemi) -> beta se výrazně posune do kladných hodnot (např. nad 50°) = Uhodnuto
+  // Sklonění nahoru (k mrakům) -> beta se výrazně posune do záporných hodnot (např. pod -40°) = Pass
   
-  const diff = beta - calibratedBeta;
-  
-  // Sklonění dolů (stačí jen trošku naklonit) = Uhodnuto
-  if (diff > 20) {
+  if (beta > 50) {
     handleAction('ok');
-  } 
-  // Zaklonění nahoru (musíš zvednout hlavu směrem dozadu / k nebi, aby to dalo pass) = Pass
-  else if (diff < -30) {
+  } else if (beta < -40) {
     handleAction('pass');
   }
 });
