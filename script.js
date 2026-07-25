@@ -386,18 +386,18 @@ window.addEventListener('keydown', (e) => {
   if (e.key === "ArrowUp") handleAction('pass');
 });
 
-// Pevně nastavené úhly pro držení na čele (sleduje se absolutní osa beta, odpadá matoucí kalibrace)
+// Absolutní pevná detekce pro telefon na čelu (na šířku):
 window.addEventListener('deviceorientation', (event) => {
   if (currentMode !== 'mobile' || !isGameActive || !canAction) return;
   
-  const beta = event.beta; // Předozadní náklon telefonu
+  const beta = event.beta; 
   if (beta === null || isNaN(beta)) return;
 
-  // Když je telefon na čele, hodnota beta je cca kolem 0° až 15° (neutrální stav).
-  // Sklonění dolů (k zemi) -> beta se výrazně posune do kladných hodnot (např. nad 50°) = Uhodnuto
-  // Sklonění nahoru (k mrakům) -> beta se výrazně posune do záporných hodnot (např. pod -40°) = Pass
+  // Na čelu je telefon ve svislé poloze (beta se pohybuje kolem 0°).
+  // 1. Gesto SPRÁVNĚ: sklonění dolů k zemi (beta vyskočí nad +40°)
+  // 2. Gesto ŠPATNĚ (Pass): zaklonění dozadu k mrakům (beta klesne pod -40°)
   
-  if (beta > 50) {
+  if (beta > 40) {
     handleAction('ok');
   } else if (beta < -40) {
     handleAction('pass');
