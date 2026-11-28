@@ -646,7 +646,7 @@ function nextWord() {
   wordDisplay.textContent = currentWordObj.text;
 
   if (currentWordObj.pts > 1) {
-    multiplierDisplay.textContent = `★ ${currentWordObj.pts}× BODY`;
+    multiplierDisplay.innerHTML = `${ICONS.star} <span>${currentWordObj.pts}× BODY</span>`;
   } else {
     multiplierDisplay.textContent = '';
   }
